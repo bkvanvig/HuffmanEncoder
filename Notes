@@ -1,0 +1,55 @@
+
+main class  - Encoder.java
+	-array with probabilities
+	
+	for single symbol and 2 symbol
+	
+	helper method read in file
+		read in list of non-negative integers - one number per line
+		let A be first number, B be second and so on
+	helper method computer entropy
+		use array with probabilities
+	helper method Huffman Algorithm
+		use entropy and Huffman Algorithm to devise binary encoding
+		Print encoding to the screen in nice format
+	helper method RandomText
+		generate random text from our alphabet at the expected probabilities
+		store text in a file name testText
+	helper method EncodeText
+		encode testText
+		Create file named testText.enc1
+	helper method DecodeText
+		decode testText.enc1
+		Create file named testText.dec1
+	
+	
+	measure the efficiency by computing the actual average bits per 
+	symbol as you do the translation. compare this with the computed
+	entropy of the language and record the percentage difference.
+	
+	Extra Credit
+	Character Frequencies in a file
+		-Use same code to read in file as before?
+		-use tolower on string
+		-create an array of 26
+		-break string down
+		-check if character is a letter
+		-array [i] stores count
+	
+	
+	
+	OVERALL OUTPUT
+	
+	Std Out
+		encoding for single symbol
+		encoding for 2 symbol
+		results on the screen
+			average bits per symbol on the screen?
+	
+	Files created
+		1. Generated Text - testText
+		2. testText.dec1
+		3. testText.enc1
+		4. testText.enc2
+		5. testText.dec2
+		
