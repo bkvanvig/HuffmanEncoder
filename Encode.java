@@ -95,6 +95,7 @@ public class Encode {
 		int runningsum = 0;
 		//System.out.println(target);
 		
+		//Is there a better way to do this?
 		if (target >= min && target<(runningsum += probabilities[0]))
 			return "a";
 		if (target >= min && target<(runningsum += probabilities[1]))
