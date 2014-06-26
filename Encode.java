@@ -17,18 +17,22 @@ public class Encode {
 	public static class Node {
 		Node left;			//children
 		Node right;
-		int probability;	//probability 
-		char letter; 		//letter we are encoding/decoding
+		int probability;	//probability of occurring
+		double scaleLow; 		//used in generating text
+		double scaleHigh; 		//used in generating text
+		String letter; 		//letter we are encoding/decoding
 		String encode; 		//encode value
 		boolean isLeaf;
 		int childProb;		//child's smallest probability
 
-		public Node(int prob, char let, boolean leaf) {
+		public Node(int prob, String let, boolean leaf) {
 			probability = prob;
 			letter = let; 
 			isLeaf = leaf; 
 			encode = "";
 			childProb = 1000000;
+			scaleLow = 0.0; 
+			scaleHigh = 0.0;
 		}
 
 		@Override public String toString() {
@@ -45,9 +49,12 @@ public class Encode {
 	}
 
 	public static int[] probabilities = new int[26];
+	public static Node[] huffmanLeaves; 
 	public static Node huffmanTree; 
 	public static int sum = 0; 
 	public static String entropy = "";
+	public static int numOfSymbols = 0; 
+	public static double amountAccounted = 0.0; 
 
 	/*
 	 * pre: reads in a file of probabilities (one number per line) and assigns to letter of alphabet
@@ -66,9 +73,7 @@ public class Encode {
 
 		//read in the file
 		try {
-			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream
-
-(file),
+			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),
 							Charset.forName("UTF-8")));
 			String aLine;
 			int letterValue = start +97; 
@@ -76,11 +81,13 @@ public class Encode {
 			//create a node for each line of data in file, place in min to max order
 			while ((aLine = reader.readLine()) != null){
 				int lineValue = Integer.parseInt(aLine);
-				Node aNode = new Node(lineValue, (char) letterValue, true); 
+				Node aNode = new Node(lineValue, String.valueOf((char)letterValue), true); 
 				letters.add(aNode); 
 				sum += lineValue;
 				letterValue++;
 			}
+			
+			numOfSymbols = letters.size(); 
 			
 			reader.close();
 			setUpTree(letters);   //use priorityqueue to create Huffman tree
@@ -91,24 +98,62 @@ public class Encode {
 		}
 	}
 
+	/*
+	 * pre: accepts a priorityqueue of nodes and sets up a Huffman tree
+	 */
 	private static void setUpTree(PriorityQueue<Node> letters) {
 		
+		//sets up huffman tree
 		while (letters.size() > 1){
+			//removes smallest nodes and appends encoding all the way down the tree
 			Node smallest = letters.remove();
 			appendEncodingDown(smallest,0); 
 			Node smaller  = letters.remove();
 			appendEncodingDown(smaller, 1); 
 			
-			Node parent = new Node(smallest.probability + smaller.probability, ' ', false);
+			//creates a parent and sets two smallest nodes as children to parent node
+			Node parent = new Node(smallest.probability + smaller.probability, "", false);
 			parent.childProb = smallest.probability;
 			parent.left=smallest;
 			parent.right=smaller;
-			letters.add(parent); 
+			letters.add(parent); 		//adds parent back to priority queue
 		}
 		
-		huffmanTree = letters.remove();
+		Node root = letters.remove();
+		setScales(root); 
+		huffmanLeaves = new Node[numOfSymbols]; 
+		setUpArray(root); 	//places leaves in an array to quickly iterate through
+	}
+	
+	//Appends a scale value used to generate text
+	public static void setScales(Node aNode) {
+		if (aNode.isLeaf) {
+			double prob = aNode.probability/(sum * 1.0);
+			aNode.scaleLow = amountAccounted;  
+			aNode.scaleHigh = amountAccounted + prob; 
+			amountAccounted = amountAccounted + prob; 
+		}
+		else {
+			setScales(aNode.right);
+			setScales(aNode.left);  
+		}
+	}
+	
+	/*
+	 * pre: huffman tree saved in node - takes leaves and adds to array
+	 */
+	private static void setUpArray(Node aNode){
+		if (aNode.isLeaf)
+			huffmanLeaves[--numOfSymbols] = aNode; 
+		else{
+			setUpArray(aNode.left);
+			setUpArray(aNode.right); 
+		}
 	}
 
+	/*
+	 *  places a 1 or 0 infront of every node below node given
+	 */
 	private static void appendEncodingDown(Node smaller, int i) {
 		if (smaller.isLeaf) { smaller.encode = i + smaller.encode; }
 		else {
@@ -118,6 +163,7 @@ public class Encode {
 		}
 	}
 	
+	//prints out tree for testing
 	private static void printTree(Node aNode) {
 		if (aNode != null) {
 			if (aNode.hasLeft()) printTree(aNode.left);
@@ -126,12 +172,12 @@ public class Encode {
 		}
 	}
 	
+	//prints out entrophy as a string
+	//NEED TO ALSO FIND VALUE!!!!!
 	private static void printEntropy(Node aNode) {
 		if (aNode.isLeaf){
 			System.out.println("  " + aNode.letter + "\t\t  " + aNode.probability + "/" + sum + "\t\t\t" + aNode.encode); 
-			entropy = entropy + aNode.probability + "/" + sum + " log(" + aNode.probability + "/" + 
-
-sum + ") + ";
+			entropy = entropy + aNode.probability + "/" + sum + " log(" + aNode.probability + "/" + sum + ") + ";
 		}
 		else {
 			if (aNode.hasLeft()) printEntropy(aNode.left);
@@ -153,16 +199,14 @@ sum + ") + ";
 		//CountFrequencies.countLetters(args[0]);
 		//setUpProbabilities(args[0]); 
 		readInFile(args[0], start); 
-		entropy(); 
+		//entropy();   //NEED TO UPDATE
+		createTestText(100);  
 	}
 	
 	public static void createTestText(int k){
 		try {
 			File file = new File("testText.txt");
-			if (!file.exists())
-			{
-				file.createNewFile();
-			}
+			//if (!file.exists()) {file.createNewFile();}		//if you try to write to a file that dne i think it automatically creates it
 			
 			BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
 			while (k>0)
@@ -171,7 +215,6 @@ sum + ") + ";
 				k--;
 			}
 			bw.close();
-			System.out.println("Done");
 		}
 		catch (IOException e)
 		{
@@ -180,66 +223,15 @@ sum + ") + ";
 		
 	}
 	public static String findLetter(){
-		int min = 1;
-		int max = sum;
-		int target = min + (int)(Math.random() * ((max - min) + 1));
-		int runningsum = 0;
-		//System.out.println(target);
+		double randomInt = Math.random();
 		
-		//Is there a better way to do this?
-		if (target >= min && target<(runningsum += probabilities[0]))
-			return "a";
-		if (target >= min && target<(runningsum += probabilities[1]))
-			return "b";
-		if (target >= min && target<(runningsum += probabilities[2]))
-			return "c";
-		if (target >= min && target<(runningsum += probabilities[3]))
-			return "d";
-		if (target >= min && target<(runningsum += probabilities[4]))
-			return "e";
-		if (target >= min && target<(runningsum += probabilities[5]))
-			return "f";
-		if (target >= min && target<(runningsum += probabilities[6]))
-			return "g";
-		if (target >= min && target<(runningsum += probabilities[7]))
-			return "h";
-		if (target >= min && target<(runningsum += probabilities[8]))
-			return "i";
-		if (target >= min && target<(runningsum += probabilities[9]))
-			return "j";
-		if (target >= min && target<(runningsum += probabilities[10]))
-			return "k";
-		if (target >= min && target<(runningsum += probabilities[11]))
-			return "l";
-		if (target >= min && target<(runningsum += probabilities[12]))
-			return "m";
-		if (target >= min && target<(runningsum += probabilities[13]))
-			return "n";
-		if (target >= min && target<(runningsum += probabilities[14]))
-			return "o";
-		if (target >= min && target<(runningsum += probabilities[15]))
-			return "p";
-		if (target >= min && target<(runningsum += probabilities[16]))
-			return "q";
-		if (target >= min && target<(runningsum += probabilities[17]))
-			return "r";
-		if (target >= min && target<(runningsum += probabilities[18]))
-			return "s";
-		if (target >= min && target<(runningsum += probabilities[19]))
-			return "t";
-		if (target >= min && target<(runningsum += probabilities[20]))
-			return "u";
-		if (target >= min && target<(runningsum += probabilities[21]))
-			return "v";
-		if (target >= min && target<(runningsum += probabilities[22]))
-			return "w";
-		if (target >= min && target<(runningsum += probabilities[23]))
-			return "x";
-		if (target >= min && target<(runningsum += probabilities[24]))
-			return "y";
-		if (target >= min && target<=(runningsum += probabilities[25]))
-			return "z";
-		else
-			return "ERROR";
+		for (Node aNode : huffmanLeaves) {
+			
+			if (aNode.scaleLow < randomInt && aNode.scaleHigh > randomInt)
+				return aNode.letter; 
+		}
+		
+		System.out.println("THERE IS AN ERROR!!"); 
+		return ""; 
 	}
 }
