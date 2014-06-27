@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.Comparator;
@@ -207,13 +208,15 @@ public class Encode {
 	}
 
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		int start = 0; 
 		//CountFrequencies.countLetters(args[0]);
 		//setUpProbabilities(args[0]); 
 		readInFile(args[0], start); 
 		entropy();   
 		createTestText(Integer.parseInt(args[1]));  
+		encode();
+		decode();
 	}
 	
 	public static void createTestText(int k){
