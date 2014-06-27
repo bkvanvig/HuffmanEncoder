@@ -47,6 +47,10 @@ public class Encode {
 		public boolean hasLeft(){
 			return (left == null) ? false: true; 
 		}
+		
+		public Node deepCopy() {
+			return new Node(probability, letter, true); 
+		}
 	}
 
 	public static Node[] huffmanLeaves; 
@@ -90,11 +94,53 @@ public class Encode {
 			numOfSymbols = letters.size(); 
 			
 			reader.close();
+			findPerm(letters, 2); 
 			setUpTree(letters);   //use priorityqueue to create Huffman tree
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+	
+	public static void findPerm(PriorityQueue<Node> root, int i) {
+		//create priorityqueue to store in nodes to be put into Huffman tree
+		PriorityQueue<Node> letters = new PriorityQueue<Node>(5, new Comparator<Node>() {
+			public int compare(Node n1, Node n2) {
+				int retvalue = Integer.valueOf(n1.probability).compareTo(n2.probability);
+				if (retvalue == 0)
+					return Integer.valueOf(n1.childProb).compareTo(n2.childProb);
+				return retvalue; 
+			}});
+		
+		PriorityQueue<Node> adding  = new PriorityQueue<Node>(5, new Comparator<Node>() {
+			public int compare(Node n1, Node n2) {
+				int retvalue = Integer.valueOf(n1.probability).compareTo(n2.probability);
+				if (retvalue == 0)
+					return Integer.valueOf(n1.childProb).compareTo(n2.childProb);
+				return retvalue; 
+			}});
+		for (Node aNode : root) 
+			letters.add(aNode.deepCopy()); 
+		int times = 0; 
+		while (times < i) {
+			for  (Node aNode : root){
+				for (Node letterNode : letters){
+					adding.add(new Node(0, letterNode.letter + aNode.letter, true)); 
+					System.out.println(letterNode.letter + aNode.letter); 
+					//letterNode.probability = (letterNode.probability/sum) * (aNode.probability/sum);
+				}
+			}
+			letters = adding;
+			adding = new PriorityQueue<Node>(5, new Comparator<Node>() {
+				public int compare(Node n1, Node n2) {
+					int retvalue = Integer.valueOf(n1.probability).compareTo(n2.probability);
+					if (retvalue == 0)
+						return Integer.valueOf(n1.childProb).compareTo(n2.childProb);
+					return retvalue; 
+				}});
+			times++;
+
 		}
 	}
 
