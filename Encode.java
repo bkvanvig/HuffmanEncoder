@@ -91,8 +91,14 @@ public class Encode {
 				letterValue++;
 			}
 			
-
+			int times = start;
+			int orig = sum; 
 			
+			while (times > 0) {
+				sum = sum * orig; 
+				times--; 
+			}
+			 
 			reader.close();
 			letters = findPerm(letters, start--); 
 			numOfSymbols = letters.size(); 
