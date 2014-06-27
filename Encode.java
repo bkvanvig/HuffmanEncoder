@@ -237,7 +237,7 @@ public class Encode {
 
 	public static void entropy(){
 		System.out.println("Result \t\tProbability \t\tEncoding");
-		printEncodingTable();
+		//printEncodingTable();
 		double ent = 0;
 		double x =0;
 		System.out.print("H = -( ");
@@ -250,11 +250,11 @@ public class Encode {
 				continue;
 			if (i != huffmanLeaves.length-1)
 			{
-				System.out.print(huffmanLeaves[i].probability + "/" + sum + " log(" + huffmanLeaves[i].probability + "/" + sum + ") + ");
+				//System.out.print(huffmanLeaves[i].probability + "/" + sum + " log(" + huffmanLeaves[i].probability + "/" + sum + ") + ");
 			}
 			else
 			{
-				System.out.println(huffmanLeaves[i].probability + "/" + sum + " log(" + huffmanLeaves[i].probability + "/" + sum + "))");
+				//System.out.println(huffmanLeaves[i].probability + "/" + sum + " log(" + huffmanLeaves[i].probability + "/" + sum + "))");
 			}
 			
 			ent += x*(Math.log(x)/Math.log(2));
@@ -264,20 +264,31 @@ public class Encode {
 
 	
 	public static void main(String[] args) throws IOException {
-		int start = 3; 
-		//CountFrequencies.countLetters(args[0]);
-		//setUpProbabilities(args[0]); 
-		readInFile(args[0], start); 
-		entropy();   
-		createTestText(Integer.parseInt(args[1]));  
-		encode();
-		decode();
+		int start = 0;
+		int j = 2;
+		if (args.length > 2)
+		{
+			j = Integer.parseInt(args[2]);
+		}
+			
+		
+		//Run permutations
+		//able to accept > 2 if extra parameter is given
+		while (start < j)
+		{
+			readInFile(args[0], start); 
+			entropy(); 
+			createTestText(Integer.parseInt(args[1])); 
+			encode(start);
+			decode(start);
+			
+			start++;
+		}
 	}
 	
 	public static void createTestText(int k){
 		try {
 			File file = new File("testText.txt");
-			//if (!file.exists()) {file.createNewFile();}		//if you try to write to a file that dne i think it automatically creates it
 			
 			BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
 			while (k>0)
@@ -297,7 +308,7 @@ public class Encode {
 		double randomInt = Math.random();
 		
 		for (Node aNode : huffmanLeaves) {
-			
+			System.out.println(randomInt+"\t\t"+aNode.scaleLow +"\t\t"+aNode.scaleHigh);
 			if (aNode.scaleLow < randomInt && aNode.scaleHigh > randomInt)
 				return aNode.letter; 
 		}
@@ -306,11 +317,12 @@ public class Encode {
 		return ""; 
 	}
 
-	public static void encode() throws IOException{
+	public static void encode(int start) throws IOException{
 		InputStream filein = new FileInputStream("testText.txt");
 		BufferedReader in = new BufferedReader(new InputStreamReader(filein));
-
-		File file = new File("testText.enc1");
+		String filename = "testText.enc"+(start+1);
+		File file = new File(filename);
+		
 		BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
 
 		String line;
@@ -332,13 +344,15 @@ public class Encode {
 		in.close();
 	}
 
-	public static void decode() {
+	public static void decode(int start) {
 		InputStream filein;
 		try {
-			filein = new FileInputStream("testText.enc1");
+			String filename = "testText.enc"+(start+1);
+			filein = new FileInputStream(filename);
 			BufferedReader in = new BufferedReader(new InputStreamReader(filein));
-
-			BufferedWriter bw = new BufferedWriter(new FileWriter("testText.dec1",true));
+			
+			filename = "testText.dec"+(start+1);
+			BufferedWriter bw = new BufferedWriter(new FileWriter(filename,true));
 
 			String line; 
 			
