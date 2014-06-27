@@ -172,7 +172,7 @@ public class Encode {
 		}
 	}
 	
-	//prints out entrophy as a string
+	//prints out entropy as a string
 	//NEED TO ALSO FIND VALUE!!!!!
 	private static void printEntropy(Node aNode) {
 		if (aNode.isLeaf){
@@ -191,6 +191,21 @@ public class Encode {
 		printEntropy(huffmanTree); 
 		entropy = entropy.substring(0, entropy.length()-3) + ")";
 		System.out.println("\n" + entropy);
+		
+		//This doesn't work because probabilities[x] isn't established
+		/*double ent = 0;
+		int x =0;
+		int xinv = 0;
+		for (int i=0; i<26; i++)
+		{
+			
+			x = probabilities[i];
+			if (x == 0)
+				continue;
+			xinv = 1/x;
+			ent += xinv*(Math.log(xinv)/Math.log(2));
+		}
+		System.out.println(ent*-1);*/
 	}
 
 	
@@ -199,8 +214,8 @@ public class Encode {
 		//CountFrequencies.countLetters(args[0]);
 		//setUpProbabilities(args[0]); 
 		readInFile(args[0], start); 
-		//entropy();   //NEED TO UPDATE
-		createTestText(100);  
+		entropy();   //NEED TO UPDATE
+		createTestText(Integer.parseInt(args[1]));  
 	}
 	
 	public static void createTestText(int k){
