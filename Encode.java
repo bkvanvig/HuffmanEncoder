@@ -94,6 +94,7 @@ public class Encode {
 			int times = start;
 			int orig = sum; 
 			
+			//find new denominator of probability
 			while (times > 0) {
 				sum = sum * orig; 
 				times--; 
@@ -266,38 +267,48 @@ public class Encode {
 	public static void main(String[] args) throws IOException {
 		int start = 0;
 		int j = 2;
+		double encodeBytes = 0;
+		double decodeBytes = 0;
+
+		//Is an additional parameter given?
 		if (args.length > 2)
 		{
 			j = Integer.parseInt(args[2]);
 		}
-			
 		
 		//Run permutations
 		//able to accept > 2 if extra parameter is given
 		while (start < j)
 		{
 			readInFile(args[0], start); 
-			createTestText(Integer.parseInt(args[1])); 
-			entropy(); 
-			//System.out.println(args[1]);
-			encode(start);
-			decode(start);
+			//only create one testText.txt
+			if (start == 0)
+			{
+				createTestText(Integer.parseInt(args[1]));
+				entropy(); 
+			}
+			//encode/decode based on j
+			encodeBytes = encode(start);
+			decodeBytes = decode(start);
+			
+			//Calculated entropy for this encoding
+			System.out.println("Actual Entropy: "+ (encodeBytes/decodeBytes));
 			start++;
 			amountAccounted = 0.0;
 			sum = 0;
 		}
 	}
 	
+	//writes characters to testText.txt
 	public static void createTestText(int k){
 		try {
 			File file = new File("testText.txt");
-			BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile(), false));
 			while (k > 0)
 			{
 				bw.write(findLetter());
 				k--;
 			}
-			bw.flush();
 			bw.close();
 		}
 		catch (IOException e)
@@ -306,6 +317,9 @@ public class Encode {
 		}
 		
 	}
+	
+	//helper to find random letter
+	//follows given distribution of letters
 	public static String findLetter(){
 		double randomInt = Math.random();
 		
@@ -319,7 +333,9 @@ public class Encode {
 		return ""; 
 	}
 
-	public static void encode(int start) throws IOException{
+	//Encode file
+	//calculate size of encoded file for entropy
+	public static double encode(int start) throws IOException{
 		InputStream filein = new FileInputStream("testText.txt");
 		BufferedReader in = new BufferedReader(new InputStreamReader(filein));
 		String filename = "testText.enc"+(start+1);
@@ -340,21 +356,27 @@ public class Encode {
 				}
 			}
 		}
-
+		
 		bw.flush();
 		bw.close();
 		in.close();
+		double encodeBytes = (double)file.length();
+		return encodeBytes;
 	}
 
-	public static void decode(int start) {
+	//Decode encoded file, 
+	//calculate size of file for entropy
+	public static double decode(int start) {
 		InputStream filein;
+		double decodeBytes = 0;
 		try {
 			String filename = "testText.enc"+(start+1);
 			filein = new FileInputStream(filename);
 			BufferedReader in = new BufferedReader(new InputStreamReader(filein));
 			
 			filename = "testText.dec"+(start+1);
-			BufferedWriter bw = new BufferedWriter(new FileWriter(new File(filename)));
+			File file = new File(filename);
+			BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsolutePath()));
 
 			String line; 
 			
@@ -377,6 +399,8 @@ public class Encode {
 			bw.flush();
 			bw.close();
 			in.close();
+			decodeBytes = (double)file.length();
+			
 		} catch (FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -384,5 +408,6 @@ public class Encode {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		return decodeBytes;
 	}
 }
