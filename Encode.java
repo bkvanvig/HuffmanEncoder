@@ -192,20 +192,20 @@ public class Encode {
 		entropy = entropy.substring(0, entropy.length()-3) + ")";
 		System.out.println("\n" + entropy);
 		
-		//This doesn't work because probabilities[x] isn't established
-		/*double ent = 0;
-		int x =0;
-		int xinv = 0;
+		
+		double ent = 0;
+		double x =0;
+		double xinv = 0;
 		for (int i=0; i<26; i++)
 		{
 			
-			x = probabilities[i];
+			x = huffmanLeaves[i].probability/sum;
 			if (x == 0)
 				continue;
 			xinv = 1/x;
 			ent += xinv*(Math.log(xinv)/Math.log(2));
 		}
-		System.out.println(ent*-1);*/
+		System.out.println(ent*-1);
 	}
 
 	
