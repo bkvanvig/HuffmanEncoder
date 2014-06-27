@@ -80,7 +80,7 @@ public class Encode {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),
 							Charset.forName("UTF-8")));
 			String aLine;
-			int letterValue = start +97; 
+			int letterValue = 97; 
 
 			//create a node for each line of data in file, place in min to max order
 			while ((aLine = reader.readLine()) != null){
@@ -91,10 +91,11 @@ public class Encode {
 				letterValue++;
 			}
 			
-			numOfSymbols = letters.size(); 
+
 			
 			reader.close();
-			findPerm(letters, 2); 
+			letters = findPerm(letters, start--); 
+			numOfSymbols = letters.size(); 
 			setUpTree(letters);   //use priorityqueue to create Huffman tree
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -103,7 +104,7 @@ public class Encode {
 		}
 	}
 	
-	public static void findPerm(PriorityQueue<Node> root, int i) {
+	public static PriorityQueue<Node> findPerm(PriorityQueue<Node> root, int i) {
 		//create priorityqueue to store in nodes to be put into Huffman tree
 		PriorityQueue<Node> letters = new PriorityQueue<Node>(5, new Comparator<Node>() {
 			public int compare(Node n1, Node n2) {
@@ -120,17 +121,18 @@ public class Encode {
 					return Integer.valueOf(n1.childProb).compareTo(n2.childProb);
 				return retvalue; 
 			}});
+		
 		for (Node aNode : root) 
-			letters.add(aNode.deepCopy()); 
+			letters.add(aNode.deepCopy());
+		
 		int times = 0; 
 		while (times < i) {
 			for  (Node aNode : root){
 				for (Node letterNode : letters){
-					adding.add(new Node(0, letterNode.letter + aNode.letter, true)); 
-					System.out.println(letterNode.letter + aNode.letter); 
-					//letterNode.probability = (letterNode.probability/sum) * (aNode.probability/sum);
+					adding.add(new Node(letterNode.probability * aNode.probability, letterNode.letter + aNode.letter, true)); 
 				}
 			}
+			
 			letters = adding;
 			adding = new PriorityQueue<Node>(5, new Comparator<Node>() {
 				public int compare(Node n1, Node n2) {
@@ -142,6 +144,7 @@ public class Encode {
 			times++;
 
 		}
+		return letters; 
 	}
 
 	/*
@@ -231,7 +234,7 @@ public class Encode {
 		printEncodingTable();
 		double ent = 0;
 		double x =0;
-		System.out.print("H = -(");
+		System.out.print("H = -( ");
 		for (int i=0; i<huffmanLeaves.length; i++)
 		{
 			
@@ -255,7 +258,7 @@ public class Encode {
 
 	
 	public static void main(String[] args) throws IOException {
-		int start = 0; 
+		int start = 3; 
 		//CountFrequencies.countLetters(args[0]);
 		//setUpProbabilities(args[0]); 
 		readInFile(args[0], start); 
