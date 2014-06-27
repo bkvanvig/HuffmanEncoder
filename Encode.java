@@ -247,4 +247,68 @@ public class Encode {
 		System.out.println("THERE IS AN ERROR!!"); 
 		return ""; 
 	}
+
+	public static void encode() throws IOException{
+		InputStream filein = new FileInputStream("testText.txt");
+		BufferedReader in = new BufferedReader(new InputStreamReader(filein));
+
+		File file = new File("testText.enc1");
+		BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
+
+		String line;
+
+		while((line = in.readLine()) != null){
+
+			String[] word = line.split("");
+
+			for (String letter : word) {
+				for (Node aNode : huffmanLeaves){
+					if (aNode.letter.equals(letter))
+						bw.write(aNode.encode);
+				}
+			}
+		}
+
+		bw.flush();
+		bw.close();
+		in.close();
+	}
+
+	public static void decode() {
+		InputStream filein;
+		try {
+			filein = new FileInputStream("testText.enc1");
+			BufferedReader in = new BufferedReader(new InputStreamReader(filein));
+
+			BufferedWriter bw = new BufferedWriter(new FileWriter("testText.dec1",true));
+
+			String line; 
+			
+			while((line = in.readLine()) != null){
+
+				int lineIdx = 0;
+				
+				for (int idx = 0; idx < huffmanLeaves.length; idx++){
+					
+					Node aNode = huffmanLeaves[idx]; 
+					int endpt = aNode.encode.length() + lineIdx; 
+					if (line.length() >= endpt && aNode.encode.equals(line.substring(lineIdx, endpt))){
+						bw.write(aNode.letter);
+						idx = -1; 
+						lineIdx = lineIdx + aNode.encode.length(); 
+					}
+				}
+			}
+			
+			bw.flush();
+			bw.close();
+			in.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
