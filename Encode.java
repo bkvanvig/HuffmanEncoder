@@ -231,7 +231,7 @@ public class Encode {
 		printEncodingTable();
 		double ent = 0;
 		double x =0;
-		System.out.print("H = -( ");
+		System.out.print("H = -(");
 		for (int i=0; i<huffmanLeaves.length; i++)
 		{
 			
