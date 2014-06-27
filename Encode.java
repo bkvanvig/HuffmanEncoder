@@ -237,10 +237,10 @@ public class Encode {
 
 	public static void entropy(){
 		System.out.println("Result \t\tProbability \t\tEncoding");
-		//printEncodingTable();
+		printEncodingTable();
 		double ent = 0;
 		double x =0;
-		System.out.print("H = -( ");
+		System.out.print("H = -(");
 		for (int i=0; i<huffmanLeaves.length; i++)
 		{
 			
@@ -250,11 +250,11 @@ public class Encode {
 				continue;
 			if (i != huffmanLeaves.length-1)
 			{
-				//System.out.print(huffmanLeaves[i].probability + "/" + sum + " log(" + huffmanLeaves[i].probability + "/" + sum + ") + ");
+				System.out.print(huffmanLeaves[i].probability + "/" + sum + " log(" + huffmanLeaves[i].probability + "/" + sum + ") + ");
 			}
 			else
 			{
-				//System.out.println(huffmanLeaves[i].probability + "/" + sum + " log(" + huffmanLeaves[i].probability + "/" + sum + "))");
+				System.out.println(huffmanLeaves[i].probability + "/" + sum + " log(" + huffmanLeaves[i].probability + "/" + sum + "))");
 			}
 			
 			ent += x*(Math.log(x)/Math.log(2));
@@ -277,25 +277,27 @@ public class Encode {
 		while (start < j)
 		{
 			readInFile(args[0], start); 
-			entropy(); 
 			createTestText(Integer.parseInt(args[1])); 
+			entropy(); 
+			//System.out.println(args[1]);
 			encode(start);
 			decode(start);
-			
 			start++;
+			amountAccounted = 0.0;
+			sum = 0;
 		}
 	}
 	
 	public static void createTestText(int k){
 		try {
 			File file = new File("testText.txt");
-			
 			BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
-			while (k>0)
+			while (k > 0)
 			{
 				bw.write(findLetter());
 				k--;
 			}
+			bw.flush();
 			bw.close();
 		}
 		catch (IOException e)
@@ -308,7 +310,7 @@ public class Encode {
 		double randomInt = Math.random();
 		
 		for (Node aNode : huffmanLeaves) {
-			System.out.println(randomInt+"\t\t"+aNode.scaleLow +"\t\t"+aNode.scaleHigh);
+			//System.out.println(randomInt+"\t\t"+aNode.scaleLow +"\t\t"+aNode.scaleHigh);
 			if (aNode.scaleLow < randomInt && aNode.scaleHigh > randomInt)
 				return aNode.letter; 
 		}
@@ -352,7 +354,7 @@ public class Encode {
 			BufferedReader in = new BufferedReader(new InputStreamReader(filein));
 			
 			filename = "testText.dec"+(start+1);
-			BufferedWriter bw = new BufferedWriter(new FileWriter(filename,true));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(new File(filename)));
 
 			String line; 
 			
