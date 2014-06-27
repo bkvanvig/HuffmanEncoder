@@ -15,6 +15,7 @@ import java.util.PriorityQueue;
 
 public class Encode {
 
+	//Structure holding our letters
 	public static class Node {
 		Node left;			//children
 		Node right;
@@ -53,10 +54,11 @@ public class Encode {
 		}
 	}
 
+	//This is an array of all the letters ordered for easy parsing
 	public static Node[] huffmanLeaves; 
+	//This puts the nodes in order of frequency
 	public static Node huffmanTree; 
 	public static int sum = 0; 
-	public static String entropy = "";
 	public static int numOfSymbols = 0; 
 	public static double amountAccounted = 0.0; 
 
@@ -111,6 +113,8 @@ public class Encode {
 		}
 	}
 	
+	//This creates all the permutations needed for specific j
+	//calls setUpTree for processing
 	public static PriorityQueue<Node> findPerm(PriorityQueue<Node> root, int i) {
 		//create priorityqueue to store in nodes to be put into Huffman tree
 		PriorityQueue<Node> letters = new PriorityQueue<Node>(5, new Comparator<Node>() {
@@ -208,7 +212,7 @@ public class Encode {
 	}
 
 	/*
-	 *  places a 1 or 0 infront of every node below node given
+	 *  places a 1 or 0 in front of every node below node given
 	 */
 	private static void appendEncodingDown(Node smaller, int i) {
 		if (smaller.isLeaf) { smaller.encode = i + smaller.encode; }
@@ -218,24 +222,17 @@ public class Encode {
 			if (smaller.hasRight()) appendEncodingDown(smaller.left, i); 
 		}
 	}
+
 	
-	//prints out tree for testing
-	private static void printTree(Node aNode) {
-		if (aNode != null) {
-			if (aNode.hasLeft()) printTree(aNode.left);
-			System.out.println(aNode);
-			if (aNode.hasRight()) printTree(aNode.right); 
-		}
-	}
-	
-	//prints out entropy as a string
+	//prints letters with probability and encoding in a table
 	private static void printEncodingTable() {
 		for (int i=0; i<huffmanLeaves.length; i++)
 		{
 			System.out.println("  " + huffmanLeaves[i].letter + "\t\t  " + huffmanLeaves[i].probability + "/" + sum + "\t\t\t" + huffmanLeaves[i].encode); 
 		}
 	}
-
+	
+	//prints out entropy equation to console
 	public static void entropy(){
 		System.out.println("Result \t\tProbability \t\tEncoding");
 		printEncodingTable();
@@ -303,7 +300,7 @@ public class Encode {
 	public static void createTestText(int k){
 		try {
 			File file = new File("testText.txt");
-			BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile(), false));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
 			while (k > 0)
 			{
 				bw.write(findLetter());
@@ -360,6 +357,7 @@ public class Encode {
 		bw.flush();
 		bw.close();
 		in.close();
+		//returns the length of the file to calculate entropy
 		double encodeBytes = (double)file.length();
 		return encodeBytes;
 	}
@@ -399,6 +397,7 @@ public class Encode {
 			bw.flush();
 			bw.close();
 			in.close();
+			//returns the length of the file to calculate entropy
 			decodeBytes = (double)file.length();
 			
 		} catch (FileNotFoundException e) {
