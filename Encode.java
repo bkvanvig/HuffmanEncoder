@@ -48,7 +48,6 @@ public class Encode {
 		}
 	}
 
-	public static int[] probabilities = new int[26];
 	public static Node[] huffmanLeaves; 
 	public static Node huffmanTree; 
 	public static int sum = 0; 
@@ -173,39 +172,38 @@ public class Encode {
 	}
 	
 	//prints out entropy as a string
-	//NEED TO ALSO FIND VALUE!!!!!
-	private static void printEntropy(Node aNode) {
-		if (aNode.isLeaf){
-			System.out.println("  " + aNode.letter + "\t\t  " + aNode.probability + "/" + sum + "\t\t\t" + aNode.encode); 
-			entropy = entropy + aNode.probability + "/" + sum + " log(" + aNode.probability + "/" + sum + ") + ";
-		}
-		else {
-			if (aNode.hasLeft()) printEntropy(aNode.left);
-			if (aNode.hasRight()) printEntropy(aNode.right); 
+	private static void printEncodingTable() {
+		for (int i=0; i<huffmanLeaves.length; i++)
+		{
+			System.out.println("  " + huffmanLeaves[i].letter + "\t\t  " + huffmanLeaves[i].probability + "/" + sum + "\t\t\t" + huffmanLeaves[i].encode); 
 		}
 	}
 
 	public static void entropy(){
 		System.out.println("Result \t\tProbability \t\tEncoding");
-		entropy = "H = -("; 
-		printEntropy(huffmanTree); 
-		entropy = entropy.substring(0, entropy.length()-3) + ")";
-		System.out.println("\n" + entropy);
-		
-		
+		printEncodingTable();
 		double ent = 0;
 		double x =0;
-		double xinv = 0;
-		for (int i=0; i<26; i++)
+		System.out.print("H = -( ");
+		for (int i=0; i<huffmanLeaves.length; i++)
 		{
 			
-			x = huffmanLeaves[i].probability/sum;
+			x = huffmanLeaves[i].probability/(sum*1.0);
+			//System.out.println(x);
 			if (x == 0)
 				continue;
-			xinv = 1/x;
-			ent += xinv*(Math.log(xinv)/Math.log(2));
+			if (i != huffmanLeaves.length-1)
+			{
+				System.out.print(huffmanLeaves[i].probability + "/" + sum + " log(" + huffmanLeaves[i].probability + "/" + sum + ") + ");
+			}
+			else
+			{
+				System.out.println(huffmanLeaves[i].probability + "/" + sum + " log(" + huffmanLeaves[i].probability + "/" + sum + "))");
+			}
+			
+			ent += x*(Math.log(x)/Math.log(2));
 		}
-		System.out.println(ent*-1);
+		System.out.println("H = "+(ent*-1));
 	}
 
 	
@@ -214,7 +212,7 @@ public class Encode {
 		//CountFrequencies.countLetters(args[0]);
 		//setUpProbabilities(args[0]); 
 		readInFile(args[0], start); 
-		entropy();   //NEED TO UPDATE
+		entropy();   
 		createTestText(Integer.parseInt(args[1]));  
 	}
 	
