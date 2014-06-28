@@ -1,6 +1,10 @@
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 
@@ -15,6 +19,25 @@ public class CountFrequencies {
 			System.out.println("Character: " + (char) current + " has count: " +a);  
 			current++;
 		}
+		System.out.println(); 
+	}
+	public static void writeToFile() {
+		try {
+			File fileout = new File("ourCount.txt"); 
+			BufferedWriter bw = new BufferedWriter(new FileWriter(fileout));
+			
+			for (int i : freq){
+				String s = i + ""; 
+				bw.write(s);
+				bw.newLine();
+			}
+			bw.flush();
+			bw.close(); 
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 	}
 	
 	public static void countLetters(String file){

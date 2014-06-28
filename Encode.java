@@ -15,7 +15,6 @@ import java.util.PriorityQueue;
 
 public class Encode {
 
-	//Structure holding our letters
 	public static class Node {
 		Node left;			//children
 		Node right;
@@ -40,25 +39,24 @@ public class Encode {
 		@Override public String toString() {
 			return "(" + letter + ", " + probability +", " + encode + ")"; 
 		}
-		
+
 		public boolean hasRight(){
 			return (right == null) ? false: true; 
 		}
-		
+
 		public boolean hasLeft(){
 			return (left == null) ? false: true; 
 		}
-		
+
 		public Node deepCopy() {
 			return new Node(probability, letter, true); 
 		}
 	}
 
-	//This is an array of all the letters ordered for easy parsing
 	public static Node[] huffmanLeaves; 
-	//This puts the nodes in order of frequency
 	public static Node huffmanTree; 
 	public static int sum = 0; 
+	public static String entropy = "";
 	public static int numOfSymbols = 0; 
 	public static double amountAccounted = 0.0; 
 
@@ -67,7 +65,7 @@ public class Encode {
 	 * post: calls setUpTree to place probabilities in a Huffman Tree to encode letters
 	 */
 	private static void readInFile(String file, int start) {
-		
+
 		//create priorityqueue to store in nodes to be put into Huffman tree
 		PriorityQueue<Node> letters = new PriorityQueue<Node>(5, new Comparator<Node>() {
 			public int compare(Node n1, Node n2) {
@@ -80,7 +78,7 @@ public class Encode {
 		//read in the file
 		try {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file),
-							Charset.forName("UTF-8")));
+					Charset.forName("UTF-8")));
 			String aLine;
 			int letterValue = 97; 
 
@@ -92,31 +90,36 @@ public class Encode {
 				sum += lineValue;
 				letterValue++;
 			}
-			
+
+			//updates denominator if using multiple letter for each symbol
 			int times = start;
 			int orig = sum; 
-			
-			//find new denominator of probability
+
 			while (times > 0) {
 				sum = sum * orig; 
 				times--; 
 			}
-			 
+
 			reader.close();
-			letters = findPerm(letters, start--); 
-			numOfSymbols = letters.size(); 
-			setUpTree(letters);   //use priorityqueue to create Huffman tree
+			
+			//if strings are longer than 1 find all permutations
+			if (start != 0) letters = findPerm(letters, start); 
+			numOfSymbols = letters.size(); 	//update numOfSymbols - used for array length
+			
+			setUpTree(letters); 	//use priorityqueue to create Huffman tree
+		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
-	//This creates all the permutations needed for specific j
-	//calls setUpTree for processing
+
+	//creates all the permutations need for a specific j
 	public static PriorityQueue<Node> findPerm(PriorityQueue<Node> root, int i) {
+		
 		//create priorityqueue to store in nodes to be put into Huffman tree
+		//this priorityqueue holds values that will be permuted with root
 		PriorityQueue<Node> letters = new PriorityQueue<Node>(5, new Comparator<Node>() {
 			public int compare(Node n1, Node n2) {
 				int retvalue = Integer.valueOf(n1.probability).compareTo(n2.probability);
@@ -124,7 +127,8 @@ public class Encode {
 					return Integer.valueOf(n1.childProb).compareTo(n2.childProb);
 				return retvalue; 
 			}});
-		
+
+		//stores new nodes created here
 		PriorityQueue<Node> adding  = new PriorityQueue<Node>(5, new Comparator<Node>() {
 			public int compare(Node n1, Node n2) {
 				int retvalue = Integer.valueOf(n1.probability).compareTo(n2.probability);
@@ -132,10 +136,13 @@ public class Encode {
 					return Integer.valueOf(n1.childProb).compareTo(n2.childProb);
 				return retvalue; 
 			}});
-		
+
+		//puts initial values in letters (copies root)
 		for (Node aNode : root) 
 			letters.add(aNode.deepCopy());
-		
+
+		//goes through loop however many symbols times
+		//each time adds one more permutation level
 		int times = 0; 
 		while (times < i) {
 			for  (Node aNode : root){
@@ -143,8 +150,10 @@ public class Encode {
 					adding.add(new Node(letterNode.probability * aNode.probability, letterNode.letter + aNode.letter, true)); 
 				}
 			}
-			
+
+			//letters now the most up to date copy
 			letters = adding;
+			//reset adding
 			adding = new PriorityQueue<Node>(5, new Comparator<Node>() {
 				public int compare(Node n1, Node n2) {
 					int retvalue = Integer.valueOf(n1.probability).compareTo(n2.probability);
@@ -162,7 +171,7 @@ public class Encode {
 	 * pre: accepts a priorityqueue of nodes and sets up a Huffman tree
 	 */
 	private static void setUpTree(PriorityQueue<Node> letters) {
-		
+
 		//sets up huffman tree
 		while (letters.size() > 1){
 			//removes smallest nodes and appends encoding all the way down the tree
@@ -170,7 +179,7 @@ public class Encode {
 			appendEncodingDown(smallest,0); 
 			Node smaller  = letters.remove();
 			appendEncodingDown(smaller, 1); 
-			
+
 			//creates a parent and sets two smallest nodes as children to parent node
 			Node parent = new Node(smallest.probability + smaller.probability, "", false);
 			parent.childProb = smallest.probability;
@@ -178,13 +187,13 @@ public class Encode {
 			parent.right=smaller;
 			letters.add(parent); 		//adds parent back to priority queue
 		}
-		
+
 		Node root = letters.remove();
 		setScales(root); 
 		huffmanLeaves = new Node[numOfSymbols]; 
 		setUpArray(root); 	//places leaves in an array to quickly iterate through
 	}
-	
+
 	//Appends a scale value used to generate text
 	public static void setScales(Node aNode) {
 		if (aNode.isLeaf) {
@@ -198,7 +207,7 @@ public class Encode {
 			setScales(aNode.left);  
 		}
 	}
-	
+
 	/*
 	 * pre: huffman tree saved in node - takes leaves and adds to array
 	 */
@@ -212,7 +221,7 @@ public class Encode {
 	}
 
 	/*
-	 *  places a 1 or 0 in front of every node below node given
+	 *  places a 1 or 0 infront of every node below node given
 	 */
 	private static void appendEncodingDown(Node smaller, int i) {
 		if (smaller.isLeaf) { smaller.encode = i + smaller.encode; }
@@ -223,16 +232,14 @@ public class Encode {
 		}
 	}
 
-	
-	//prints letters with probability and encoding in a table
+	//prints out entropy as a string
 	private static void printEncodingTable() {
 		for (int i=0; i<huffmanLeaves.length; i++)
 		{
 			System.out.println("  " + huffmanLeaves[i].letter + "\t\t  " + huffmanLeaves[i].probability + "/" + sum + "\t\t\t" + huffmanLeaves[i].encode); 
 		}
 	}
-	
-	//prints out entropy equation to console
+
 	public static void entropy(){
 		System.out.println("Result \t\tProbability \t\tEncoding");
 		printEncodingTable();
@@ -241,7 +248,7 @@ public class Encode {
 		System.out.print("H = -(");
 		for (int i=0; i<huffmanLeaves.length; i++)
 		{
-			
+
 			x = huffmanLeaves[i].probability/(sum*1.0);
 			//System.out.println(x);
 			if (x == 0)
@@ -254,49 +261,65 @@ public class Encode {
 			{
 				System.out.println(huffmanLeaves[i].probability + "/" + sum + " log(" + huffmanLeaves[i].probability + "/" + sum + "))");
 			}
-			
+
 			ent += x*(Math.log(x)/Math.log(2));
 		}
-		System.out.println("H = "+(ent*-1));
+		System.out.print(" = "+(ent*-1));
 	}
 
-	
-	public static void main(String[] args) throws IOException {
-		int start = 0;
-		int j = 2;
-		double encodeBytes = 0;
-		double decodeBytes = 0;
 
-		//Is an additional parameter given?
+	public static void main(String[] args) throws IOException {		
+
+		readInFile(args[0], 0); 
+		createTestText(Integer.parseInt(args[1])); 
+		entropy(); 
+		double en = encode("testText.enc1", "testText.txt");
+		double de = decode("testText.enc1", "testText.dec1");
+		System.out.println("\n  Actual Entropy: "+ en); 
+		amountAccounted = 0.0;
+		sum = 0;
+
+		System.out.println(); 
+
+		readInFile(args[0], 1);  
+		entropy(); 
+		en = encode("testText.enc2", "testText.txt");
+		de = decode("testText.enc2", "testText.dec2");
+		System.out.println("\n  Actual Entropy: "+ en);
+		amountAccounted = 0.0;
+		sum = 0;
+
+		System.out.println(); 
+
 		if (args.length > 2)
 		{
-			j = Integer.parseInt(args[2]);
-		}
-		
-		//Run permutations
-		//able to accept > 2 if extra parameter is given
-		while (start < j)
-		{
-			readInFile(args[0], start); 
-			//only create one testText.txt
-			if (start == 0)
-			{
-				createTestText(Integer.parseInt(args[1]));
-				entropy(); 
-			}
-			//encode/decode based on j
-			encodeBytes = encode(start);
-			decodeBytes = decode(start);
-			
-			//Calculated entropy for this encoding
-			System.out.println("Actual Entropy: "+ (encodeBytes/decodeBytes));
-			start++;
+			int j = Integer.parseInt(args[2]);
+			System.out.println("Running Huffman Encoding with " + j + "-symbol derived alphabet");
+			readInFile(args[0], j);  
+			entropy(); 
+			en = encode("testText.enc3", "testText.txt");
+			de = decode("testText.enc3", "testText.dec3");
+			System.out.println("\n  Actual Entropy: "+ en);
 			amountAccounted = 0.0;
 			sum = 0;
 		}
+
+		System.out.println(); 
+
+		System.out.println("Encoding large English Text: The Illiad");
+		CountFrequencies.countLetters("book.txt");
+		CountFrequencies.writeToFile();
+		readInFile("ourCount.txt", 0);  
+		entropy(); 
+		en = encode("testText.enc4", "book.txt");
+		de = decode("testText.enc4", "testText.dec4");
+		System.out.println("\n  Actual Entropy: "+ en);
+		amountAccounted = 0.0;
+		sum = 0;
+		
 	}
-	
-	//writes characters to testText.txt
+
+	//writes characters to testText
 	public static void createTestText(int k){
 		try {
 			File file = new File("testText.txt");
@@ -306,84 +329,100 @@ public class Encode {
 				bw.write(findLetter());
 				k--;
 			}
+			bw.flush();
 			bw.close();
 		}
 		catch (IOException e)
 		{
 			e.printStackTrace();
 		}
-		
+
 	}
 	
 	//helper to find random letter
 	//follows given distribution of letters
 	public static String findLetter(){
 		double randomInt = Math.random();
-		
+
 		for (Node aNode : huffmanLeaves) {
-			//System.out.println(randomInt+"\t\t"+aNode.scaleLow +"\t\t"+aNode.scaleHigh);
+			
 			if (aNode.scaleLow < randomInt && aNode.scaleHigh > randomInt)
 				return aNode.letter; 
 		}
-		
+
+		//should not get to this code
 		System.out.println("THERE IS AN ERROR!!"); 
 		return ""; 
 	}
 
-	//Encode file
-	//calculate size of encoded file for entropy
-	public static double encode(int start) throws IOException{
-		InputStream filein = new FileInputStream("testText.txt");
-		BufferedReader in = new BufferedReader(new InputStreamReader(filein));
-		String filename = "testText.enc"+(start+1);
-		File file = new File(filename);
-		
-		BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
-
-		String line;
-
-		while((line = in.readLine()) != null){
-
-			String[] word = line.split("");
-
-			for (String letter : word) {
-				for (Node aNode : huffmanLeaves){
-					if (aNode.letter.equals(letter))
-						bw.write(aNode.encode);
-				}
-			}
-		}
-		
-		bw.flush();
-		bw.close();
-		in.close();
-		//returns the length of the file to calculate entropy
-		double encodeBytes = (double)file.length();
-		return encodeBytes;
-	}
-
-	//Decode encoded file, 
-	//calculate size of file for entropy
-	public static double decode(int start) {
-		InputStream filein;
-		double decodeBytes = 0;
+	public static double encode(String filename, String filegiven){
 		try {
-			String filename = "testText.enc"+(start+1);
-			filein = new FileInputStream(filename);
+			InputStream filein = new FileInputStream(filegiven);
 			BufferedReader in = new BufferedReader(new InputStreamReader(filein));
 			
-			filename = "testText.dec"+(start+1);
 			File file = new File(filename);
-			BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsolutePath()));
+			BufferedWriter bw = new BufferedWriter(new FileWriter(file.getAbsoluteFile()));
+
+			String line;
+			int size = huffmanLeaves[0].letter.length();
+			
+			int bits = 0; 
+			int symbols = 0; 
+
+			while((line = in.readLine()) != null){
+
+				String[] word = new String[line.length()/size];
+				int start = 0; 
+				
+				for (int i = 0; i < word.length; i++) {
+					word[i] = line.substring(start, start+size);
+					start = start + size; 
+				} 
+
+				for (String letter : word) {
+					for (Node aNode : huffmanLeaves){
+						if (aNode.letter.equals(letter)){
+							bw.write(aNode.encode);
+							bits = bits + aNode.encode.length();
+							symbols++; 
+						}
+					}
+				}
+			}
+
+			bw.flush();
+			bw.close();
+			in.close();
+			
+			//returns the length of the file to calculate entropy
+			double encodeBytes = bits/(symbols *1.0);
+			return encodeBytes;
+
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+			return 0.0;
+		} catch (IOException e) {
+			e.printStackTrace();
+			return 0.0;
+		}
+	}
+
+	public static double decode(String filenamein, String filenameout) {
+		try {
+			InputStream filein = new FileInputStream(filenamein);
+			BufferedReader in = new BufferedReader(new InputStreamReader(filein));
+
+			File fileout = new File(filenameout); 
+			BufferedWriter bw = new BufferedWriter(new FileWriter(fileout));
 
 			String line; 
-			
+
 			while((line = in.readLine()) != null){
 
 				int lineIdx = 0;
-				
+
 				for (int idx = 0; idx < huffmanLeaves.length; idx++){
-					
+
 					Node aNode = huffmanLeaves[idx]; 
 					int endpt = aNode.encode.length() + lineIdx; 
 					if (line.length() >= endpt && aNode.encode.equals(line.substring(lineIdx, endpt))){
@@ -393,20 +432,21 @@ public class Encode {
 					}
 				}
 			}
-			
+
 			bw.flush();
 			bw.close();
 			in.close();
+			
 			//returns the length of the file to calculate entropy
-			decodeBytes = (double)file.length();
+			double decodeBytes = (double)fileout.length();
+			return decodeBytes;
 			
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return 0.0;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
+			return 0.0;
 		}
-		return decodeBytes;
 	}
 }
