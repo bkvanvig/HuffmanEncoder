@@ -295,6 +295,7 @@ public class Encode {
 		{
 			int j = Integer.parseInt(args[2]);
 			System.out.println("Running Huffman Encoding with " + j + "-symbol derived alphabet");
+			j--; 
 			readInFile(args[0], j);  
 			entropy(); 
 			en = encode("testText.enc3", "testText.txt");
